@@ -24,6 +24,12 @@ for line in sys.stdin:
         if FILTER=='PASS': 
             GTl=line.split('\t')[sample_col_idx].split(':')[0].replace('/','|').split('|')
             al=[REF]+ALT.split(',')
+
+
+            if '.' in GTl:
+		sys.stderr.write('skipping variant in line\n' + line + 'GT="' + line.split('\t')[sample_col_idx].split(':')[0] + '"\n')
+		continue
+
             if al[int(GTl[0])]!=al[int(GTl[1])] and len(al[int(GTl[0])])==len(al[int(GTl[1])])==len(REF)==1:
 
                 # now deal with chr names; just two common conventions for now
