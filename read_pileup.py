@@ -23,6 +23,7 @@ def pileup_to_basecnts (filelist):
     for mf in filelist:
         with open(mf,'r') as in_m:
             for line in in_m:
+		#print(line)
                 warning = '.'
                 chrm, crd, a, tot_pileup_cnt, seq, _ = line.split()
                 a = a.upper()
@@ -40,7 +41,8 @@ def pileup_to_basecnts (filelist):
                                 new_indel = True
                                 number = ''
                         else:
-                            if character.isalpha():
+                            #if character.isalpha():
+                            if not character.isdigit():
                                 number = int(number)
                                 number -= 1
                             else: number += character

@@ -25,9 +25,9 @@ for line in sys.stdin:
         e_list.append(ename)
         e_dict[ename]={'hap1': set(), 'hap2': set(), 'snv_count': 0, 'snvs': ':'}
 
-    # todo: may not include either hap's coord, if no reads mapped to it
+    # may not include either hap's coord if no reads mapped to it (if none uniquely mapped, the counts can later be adjusted from the multi-mapping reads)
     # so, for some regions in the 'snv_hap1_hap2_coords', some hetSNV may have coord from only one hap 
-    # remove this column here in all future steps if it isn't necessary, or get this info from the bed file
+    # todo: remove this column here in all future steps if it isn't necessary, or get this info from the bed file
 
     e_dict[ename][hap].add(rname)
     if snv not in e_dict[ename]['snvs']: e_dict[ename]['snvs'] += snv + ':'

@@ -49,8 +49,13 @@ $(info $(empty_string))
 ######################
 
  
-all:$(PREFIX)_hap1_allele_ratios.region_filtered_counts.chrs1-22$(KEEP_CHR).$(Cntthresh_tot)-tot_$(Cntthresh_min)-min_cnt.pdf $(PREFIX)_hap1_allele_ratios.region_filtered_counts.pdf $(PREFIX)_hap1_allele_ratios.region_raw_counts.pdf $(PREFIX)_interesting_regions.FDR-$(FDR_CUTOFF).binom.chrs1-22$(KEEP_CHR).$(Cntthresh_tot)-tot_$(Cntthresh_min)-min_cnt.tsv $(PREFIX)_interesting_regions.FDR-$(FDR_CUTOFF).betabinom.chrs1-22$(KEEP_CHR).$(Cntthresh_tot)-tot_$(Cntthresh_min)-min_cnt.tsv
+#all:$(PREFIX)_hap1_allele_ratios.region_filtered_counts.chrs1-22$(KEEP_CHR).$(Cntthresh_tot)-tot_$(Cntthresh_min)-min_cnt.pdf $(PREFIX)_hap1_allele_ratios.region_filtered_counts.pdf $(PREFIX)_hap1_allele_ratios.region_raw_counts.pdf $(PREFIX)_interesting_regions.FDR-$(FDR_CUTOFF).binom.chrs1-22$(KEEP_CHR).$(Cntthresh_tot)-tot_$(Cntthresh_min)-min_cnt.tsv $(PREFIX)_interesting_regions.FDR-$(FDR_CUTOFF).betabinom.chrs1-22$(KEEP_CHR).$(Cntthresh_tot)-tot_$(Cntthresh_min)-min_cnt.tsv
 
+
+#all:$(PREFIX)_hap1_allele_ratios.region_filtered_counts.chrs1-22$(KEEP_CHR).$(Cntthresh_tot)-tot_$(Cntthresh_min)-min_cnt.pdf $(PREFIX)_hap1_allele_ratios.region_filtered_counts.pdf $(PREFIX)_hap1_allele_ratios.region_raw_counts.pdf $(PREFIX)_interesting_regions.FDR-$(FDR_CUTOFF).betabinom.chrs1-22$(KEEP_CHR).$(Cntthresh_tot)-tot_$(Cntthresh_min)-min_cnt.tsv
+
+
+all: $(PREFIX)_interesting_regions.FDR-$(FDR_CUTOFF).betabinom.chrs1-22$(KEEP_CHR).$(Cntthresh_tot)-tot_$(Cntthresh_min)-min_cnt.tsv
 
 # todo: this seems to work, but the way it deals with paths, filenames, etc needs to be cleaned up
 # currently, keeping alleleDB betabinomial scripts with as little modifications as possible

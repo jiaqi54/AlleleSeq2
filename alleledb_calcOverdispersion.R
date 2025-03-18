@@ -4,8 +4,8 @@
 
 
 
-#library(VGAM)
-library(VGAM, lib.loc="~/R_libs/")
+library(VGAM)
+# library(VGAM, lib.loc="~/R_libs/")
 ## weighted beta/binomial distribution
 # d.combined collects all results and correspond it to an allelic ratio:
 # col1=ref_allele_ratio (based on binomial n=6, ar=0,1/6,2/6...)
@@ -271,40 +271,40 @@ while(flag)
 
 ## print empirical, binomial and betabinomial fit
 # x11(width=17, height=9)
-pdf(paste(filename,"-checkgrad-",minN,"-",maxN,".pdf", sep=""),width=17, height=9)
-par(cex.axis=1.5, cex.lab=2, cex.main=2, mar=c(5,5,5,5))
-barplot(empirical, ylab='density', xlab='ref_allele_ratio', 
-        names.arg=h$mids, ylim=c(0,yuplimit), main=paste("n=",minN,'-',maxN))
-par(new=TRUE)
-plot(d.combined.sorted.binned,ylim=c(0,yuplimit),pch=16,type='b',col='red',
-     bty='n',ylab='',xlab='',yaxt='n',xaxt='n',yaxs="i")
-par(new=TRUE)
-plot(e.combined.sorted.binned,ylim=c(0,yuplimit),pch=16,type='b',col='blue',
-     bty='n',ylab='',xlab='',yaxt='n',xaxt='n',yaxs="i")
+# pdf(paste(filename,"-checkgrad-",minN,"-",maxN,".pdf", sep=""),width=17, height=9)
+# par(cex.axis=1.5, cex.lab=2, cex.main=2, mar=c(5,5,5,5))
+# barplot(empirical, ylab='density', xlab='ref_allele_ratio', 
+#         names.arg=h$mids, ylim=c(0,yuplimit), main=paste("n=",minN,'-',maxN))
+# par(new=TRUE)
+# plot(d.combined.sorted.binned,ylim=c(0,yuplimit),pch=16,type='b',col='red',
+#      bty='n',ylab='',xlab='',yaxt='n',xaxt='n',yaxs="i")
+# par(new=TRUE)
+# plot(e.combined.sorted.binned,ylim=c(0,yuplimit),pch=16,type='b',col='blue',
+#      bty='n',ylab='',xlab='',yaxt='n',xaxt='n',yaxs="i")
 
-legend(0.01,0.14,c("empirical","binomial",
-                   labels[1:(newctr-1)]),
-       col=c("grey","red",colors[1:(newctr-2)],"blue"), cex=2, pt.cex=2,
-       text.col = "black", pch = 15, bg = 'white')
-# dev.copy2pdf(file = paste(filename,"-check-",minN,"-",maxN,".pdf", sep=""))
-dev.off()
+# legend(0.01,0.14,c("empirical","binomial",
+#                   labels[1:(newctr-1)]),
+#       col=c("grey","red",colors[1:(newctr-2)],"blue"), cex=2, pt.cex=2,
+#       text.col = "black", pch = 15, bg = 'white')
+# # dev.copy2pdf(file = paste(filename,"-check-",minN,"-",maxN,".pdf", sep=""))
+# dev.off()
 
-## print sse
-# x11(width=10, height=7)
-pdf(paste(filename,"-checksse.grad-",minN,"-",maxN,".pdf", sep=""), width=10, height=7)
-par(cex.axis=1.5, cex.lab=2, cex.main=2, mar=c(5,5,5,5))
-b.and.sse = b.and.sse[1:(ctr+2),]
-plot(b.and.sse[order(b.and.sse[,1]),],type='b',
-     pch=16,xlim=c(min(b.and.sse[,1]), max(b.and.sse[,1])),
-     ylim=c(min(b.and.sse[,2]), max(b.and.sse[,2])))
-par(new=TRUE)
-par(cex.axis=1.5, cex.lab=2, cex.main=2, mar=c(5,5,5,5))
-plot(b.choice,sse,bty='n',ylab='',xlab='',yaxt='n',xaxt='n',
-     col='red',pch=8,xlim=c(min(b.and.sse[,1]), max(b.and.sse[,1])),
-     ylim=c(min(b.and.sse[,2]), max(b.and.sse[,2])))
-text(b.choice,sse+(r.by*2),paste("b.chosen=",signif(b.choice,3),"\nSSE.chosen=",signif(sse,3)),cex=1.5)
-# dev.copy2pdf(file = paste(filename,"-checksse-",minN,"-",maxN,".pdf", sep=""))
-dev.off()
+# ## print sse
+# # x11(width=10, height=7)
+# pdf(paste(filename,"-checksse.grad-",minN,"-",maxN,".pdf", sep=""), width=10, height=7)
+# par(cex.axis=1.5, cex.lab=2, cex.main=2, mar=c(5,5,5,5))
+# b.and.sse = b.and.sse[1:(ctr+2),]
+# plot(b.and.sse[order(b.and.sse[,1]),],type='b',
+#      pch=16,xlim=c(min(b.and.sse[,1]), max(b.and.sse[,1])),
+#      ylim=c(min(b.and.sse[,2]), max(b.and.sse[,2])))
+# par(new=TRUE)
+# par(cex.axis=1.5, cex.lab=2, cex.main=2, mar=c(5,5,5,5))
+# plot(b.choice,sse,bty='n',ylab='',xlab='',yaxt='n',xaxt='n',
+#      col='red',pch=8,xlim=c(min(b.and.sse[,1]), max(b.and.sse[,1])),
+#      ylim=c(min(b.and.sse[,2]), max(b.and.sse[,2])))
+# text(b.choice,sse+(r.by*2),paste("b.chosen=",signif(b.choice,3),"\nSSE.chosen=",signif(sse,3)),cex=1.5)
+# # dev.copy2pdf(file = paste(filename,"-checksse-",minN,"-",maxN,".pdf", sep=""))
+# dev.off()
 
 ## print to files 
 write.table(b.and.sse,"b_and_sse.grad.txt", row.names=FALSE, sep="\t")

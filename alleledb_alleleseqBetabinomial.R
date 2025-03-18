@@ -18,8 +18,8 @@ if (length(args)>5){
 
 
 ## start script here
-#library(VGAM)
-library(VGAM, lib.loc="~/R_libs/")
+library(VGAM)
+# library(VGAM, lib.loc="~/R_libs/")
 
 ### data
 
