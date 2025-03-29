@@ -24,8 +24,6 @@ library(VGAM)
 ### data
 
 data1 = read.table(args[1], header=T, stringsAsFactors=F, comment.char="%", check.names=F)
-#print(head(data1))
-#filename2 = "betabinomial/b_chosen.grad.txt"
 filename2 = paste0(args[2],'/',"b_chosen.grad.txt")
 data2 = read.table(filename2, header=T, stringsAsFactors=F)
 
@@ -55,7 +53,7 @@ data1$p.betabin = p.betabin
 
 ## simulations
 step = 0.0001
-p.thresh = data.frame( c(seq(0,0.01,by=0.001), seq(0.01,0.1,by=0.01)[-1], seq(0.1,1,by=0.1)[-1]) ) #
+p.thresh = data.frame( c(seq(0,0.001,by=0.0001), seq(0,0.01,by=0.001), seq(0.01,0.1,by=0.01)[-1], seq(0.1,1,by=0.1)[-1]) )
 cutoff <- function(x,y) sum(y<=x)
 
 ## calc fp from null and empirical counts
@@ -110,8 +108,37 @@ p.choice.betabin = max(p.thresh[,1][fdr.betabin<=FDR.thresh])
 fdr.choice.bin = max(fdr.bin[fdr.bin<=FDR.thresh])
 fdr.choice.betabin = max(fdr.betabin[fdr.betabin<=FDR.thresh])
 
+if (is.infinite(p.choice.bin) || p.choice.bin == 0) {
+  stop(sprintf(
+    "Binomial test: No p-value threshold met the FDR cutoff of %.3f.\nTested p-value thresholds were:\n%s",
+    FDR.thresh,
+    paste(p.thresh[,1], collapse = ", ")
+  ))
+}
+
+if (is.infinite(p.choice.betabin) || p.choice.betabin == 0) {
+  stop(sprintf(
+    "Betabinomial test: No p-value threshold met the FDR cutoff of %.3f.\nTested p-value thresholds were:\n%s",
+    FDR.thresh,
+    paste(p.thresh[,1], collapse = ", ")
+  ))
+}
+
+# Print final results
+message(sprintf(
+  "Binomial test: Selected p-value to minimize FDR is: %.5f. The minimized FDR is: %.5f.",
+  p.choice.bin,
+  fdr.choice.bin
+))
+
+message(sprintf(
+  "Betabinomial test: Selected p-value to minimize FDR is: %.5f. The minimized FDR is: %.5f.",
+  p.choice.betabin,
+  fdr.choice.betabin
+))
+
 ## bisection method to find p value
-bisect <- function(p,p.sim,p.choice,fdr,fdr.threshold,by,distrib="binomial",b=0,w,p.thresh)
+bisect <- function(p,p.choice,fdr,fdr.threshold,by,distrib="binomial",b=0,w,p.thresh)
 {
   p.fdr.e = matrix(0,100,3)
   e.prev = 10
@@ -121,6 +148,7 @@ bisect <- function(p,p.sim,p.choice,fdr,fdr.threshold,by,distrib="binomial",b=0,
   p.fdr.e[ctr,2] = fdr
   p.fdr.e[ctr,3] = e.prev
   
+  
   while(flag)
   {
     start = max(0,(p.choice - by/2))   
@@ -128,6 +156,7 @@ bisect <- function(p,p.sim,p.choice,fdr,fdr.threshold,by,distrib="binomial",b=0,
     by = by/4
     
     if(start==0){ start = 5e-4 } ## do not make it 0
+    
     
     range = seq(start,end,by)
     
@@ -154,27 +183,17 @@ bisect <- function(p,p.sim,p.choice,fdr,fdr.threshold,by,distrib="binomial",b=0,
       e.prev = p.fdr.e[(ctr-1),3]
       p.choice = i
       
-      print(paste("i=",i,"start|end|by",start,end,by))
-      print(paste("fdr.threshold=",fdr.threshold,"fdr.ind=",fdr.ind,"e.curr=",e.curr)) ##debug
-      print(paste("fp=",fp,"tp=",tp))
+
       if(e.curr < 0){ break }
       
-#        print(paste(start,"|",end,"|",i,"|",ctr,"|",by)) ##debug
-#        print(paste("fdr.thresh=",fdr.threshold,"|fdr=",fdr.ind,"|fdrmatrix=",p.fdr.e[(ctr-1),2],
-#                    "e.curr=",p.fdr.e[ctr,3],"|e.prev=",p.fdr.e[ctr-1,3])) ##debug
-    }
-#      print(paste(start,"|",end,"|",i,"|",ctr,"|",by)) ##debug
-#      print(paste("fdr.thresh=",fdr.threshold,"|fdr=",p.fdr.e[ctr,2],"|fdrprev=",p.fdr.e[ctr-1,2])) 
-#      break##debug
-#      print(paste("tp=",tp,"|fp=",fp)) ##debug
-#      print(paste("e.curr=",e.curr,"|e.prev=",e.prev)) ##debug
     
     if(signif(p.fdr.e[ctr-1,3],3) == signif(p.fdr.e[ctr,3],3)){ flag = 0 }
   }  
   return(p.fdr.e)
 }
-p.choice.bin.1 = as.data.frame(bisect(p.bin,fp.bin[,2],p.choice.bin,fdr.choice.bin,FDR.thresh,step,"binomial",b=0,w,p))
-p.choice.betabin.1 = as.data.frame(bisect(p.betabin,fp.betabinomial[,2],p.choice.betabin,fdr.choice.betabin,FDR.thresh,step,"betabinomial",b,w,p))
+
+p.choice.bin.1 = as.data.frame(bisect(p.bin,p.choice.bin,fdr.choice.bin,FDR.thresh,step,"binomial",b=0,w,p))
+p.choice.betabin.1 = as.data.frame(bisect(p.betabin,p.choice.betabin,fdr.choice.betabin,FDR.thresh,step,"betabinomial",b,w,p))
 
 p.choice.bin.1 = p.choice.bin.1[p.choice.bin.1[,3]>0,]
 p.choice.bin.2 = p.choice.bin.1[nrow(p.choice.bin.1),1]
@@ -192,9 +211,7 @@ FDR.txt = FDR.txt[-nrow(FDR.txt),]
 
 
 ## take in counts.txt and filter by p.betabin and cnv
-#interestingHets.betabinom = data1[data1$p.betabin<=p.choice.betabin,]
 interestingHets.betabinom = data1[(data1$p.betabin<=p.choice.betabin.2) & (data1$cnv>=0.5 & data1$cnv<=1.5),]
-#print (head(interestingHets.betabinom))
 
 ## printing files
 write.table(data1,file=args[3], sep="\t",
