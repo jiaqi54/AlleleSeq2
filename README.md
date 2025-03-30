@@ -36,10 +36,12 @@ make -f makePersonalGenome.mk \
 ## (1) Calling AS hetSNVs from a single sample
 ### Makefile options (can be specified in ``PIPELINE.mk`` or as command-line arguments):
 #### Dependencies:
-```module load Python/3.8.6-GCCcore-10.2.0
+```
+module load Python/3.8.6-GCCcore-10.2.0
 module load R/4.2.0-foss-2020b
 module load STAR/2.7.11a-GCC-10.2.0
-module load cutadapt/3.4-GCCcore-10.2.0```
+module load cutadapt/3.4-GCCcore-10.2.0
+```
 
 #### Dependencies, system parameters/paths:
 ``PL``: path to AlleleSeq2  
