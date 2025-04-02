@@ -311,11 +311,11 @@ $(PREFIX)_ASB-params.Aligned.sortedByCoord.out.bam: $(READS_R1)
 
 
 ## opts for ASCA, atac-seq, similar to ASB, but will require adapter-trimmed reads
-$(PREFIX)_ASCA-params.Aligned.sortedByCoord.out.bam: $(READS_R1)
+$(PREFIX)_ASCA-params.Aligned.sortedByCoord.out.bam: $(READS_R1).trimmed.fastq.gz
 	$(STAR) \
 	--runThreadN $(NTHR) \
 	--genomeDir $(GenomeIdx_STAR_diploid) \
-	--readFilesIn $< $(READS_R2) \
+	--readFilesIn $< $(READS_R2).trimmed.fastq.gz \
 	--readFilesCommand $(STAR_readFilesCommand) \
 	--outFileNamePrefix $(@:Aligned.sortedByCoord.out.bam=) \
 	--outSAMattributes All \
