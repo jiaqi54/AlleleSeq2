@@ -18,14 +18,12 @@ if (length(args)>5){
 
 
 ## start script here
-#library(VGAM)
-library(VGAM, lib.loc="/gpfs/gibbs/pi/gerstein/en325/ENTEX2/AlleleSeq2/VGAM/vgam_lib")
+library(VGAM)
+# library(VGAM, lib.loc="~/R_libs/")
 
 ### data
 
 data1 = read.table(args[1], header=T, stringsAsFactors=F, comment.char="%", check.names=F)
-#print(head(data1))
-#filename2 = "betabinomial/b_chosen.grad.txt"
 filename2 = paste0(args[2],'/',"b_chosen.grad.txt")
 data2 = read.table(filename2, header=T, stringsAsFactors=F)
 
@@ -55,7 +53,7 @@ data1$p.betabin = p.betabin
 
 ## simulations
 step = 0.0001
-p.thresh = data.frame( c(seq(0,0.01,by=0.001), seq(0.01,0.1,by=0.01)[-1], seq(0.1,1,by=0.1)[-1]) ) #
+p.thresh = data.frame( c(seq(0,0.001,by=0.0001), seq(0,0.01,by=0.001), seq(0.01,0.1,by=0.01)[-1], seq(0.1,1,by=0.1)[-1]) )
 cutoff <- function(x,y) sum(y<=x)
 
 ## calc fp from null and empirical counts
@@ -110,72 +108,92 @@ p.choice.betabin = max(p.thresh[,1][fdr.betabin<=FDR.thresh])
 fdr.choice.bin = max(fdr.bin[fdr.bin<=FDR.thresh])
 fdr.choice.betabin = max(fdr.betabin[fdr.betabin<=FDR.thresh])
 
+if (is.infinite(p.choice.bin) || p.choice.bin == 0) {
+  stop(sprintf(
+    "Binomial test: No p-value threshold met the FDR cutoff of %.3f.\nTested p-value thresholds were:\n%s",
+    FDR.thresh,
+    paste(p.thresh[,1], collapse = ", ")
+  ))
+}
+
+if (is.infinite(p.choice.betabin) || p.choice.betabin == 0) {
+  stop(sprintf(
+    "Betabinomial test: No p-value threshold met the FDR cutoff of %.3f.\nTested p-value thresholds were:\n%s",
+    FDR.thresh,
+    paste(p.thresh[,1], collapse = ", ")
+  ))
+}
+
+# Print final results
+message(sprintf(
+  "Binomial test: Selected p-value to minimize FDR is: %.5f. The minimized FDR is: %.5f.",
+  p.choice.bin,
+  fdr.choice.bin
+))
+
+message(sprintf(
+  "Betabinomial test: Selected p-value to minimize FDR is: %.5f. The minimized FDR is: %.5f.",
+  p.choice.betabin,
+  fdr.choice.betabin
+))
+
 ## bisection method to find p value
-bisect <- function(p, p.sim, p.choice, fdr, fdr.threshold, by, distrib="binomial", b=0, w, p.thresh) {
-  p.fdr.e = matrix(0, 100, 3)
+bisect <- function(p,p.choice,fdr,fdr.threshold,by,distrib="binomial",b=0,w,p.thresh)
+{
+  p.fdr.e = matrix(0,100,3)
   e.prev = 10
   flag = 3
   ctr = 1
-  p.fdr.e[ctr, 1] = p.choice
-  p.fdr.e[ctr, 2] = fdr
-  p.fdr.e[ctr, 3] = e.prev
-
-  while (flag) {
-    start = max(0, (p.choice - by / 2))
-    end = p.choice + by / 2
-    by = by / 4
-
-    # Debugging print statements
-    cat("Iteration:", ctr, "\n")
-    cat("Start:", start, "End:", end, "By:", by, "\n")
-
-    if (start == 0) {  # do not make it 0
-      start = 5e-6
-    }
-
-    range = seq(start, end, by = by)
-
-    # More debugging print statements
-    cat("Range length:", length(range), "\n")
-    if (length(range) == 0) {
-      cat("Error: Empty range generated. Adjusting by value...\n")
-    }
-
-    for (i in range) {
-      tp = cutoff(i, p)
-
-      # Debugging print for each iteration within the loop
-      cat("Processing i =", i, "\n")
-
-      if (distrib == "binomial") {
-        fp = fp(w, p.thresh, i, "binomial")
-      } else if (distrib == "betabinomial") {
-        fp = fp(w, p.thresh, i, "betabinomial", b)
+  p.fdr.e[ctr,1] = p.choice
+  p.fdr.e[ctr,2] = fdr
+  p.fdr.e[ctr,3] = e.prev
+  
+  
+  while(flag)
+  {
+    start = max(0,(p.choice - by/2))   
+    end = p.choice + by/2
+    by = by/4
+    
+    if(start==0){ start = 5e-4 } ## do not make it 0
+    
+    
+    range = seq(start,end,by)
+    
+    for (i in range)
+    {
+      tp = cutoff(i,p)
+      
+      if(distrib == "binomial")
+      {
+        fp = fp(w,p.thresh,i,"binomial")
       }
-
-      fdr.ind = fp / tp
+      else if(distrib == "betabinomial")
+      {
+        fp = fp(w,p.thresh,i,"betabinomial",b)
+      }
+      
+      fdr.ind = fp/tp
       e.curr = fdr.threshold - fdr.ind
       ctr = ctr + 1
-
-      p.fdr.e[ctr, 1] = i
-      p.fdr.e[ctr, 2] = fdr.ind
-      p.fdr.e[ctr, 3] = e.curr
-      e.prev = p.fdr.e[(ctr - 1), 3]
+      
+      p.fdr.e[ctr,1] = i
+      p.fdr.e[ctr,2] = fdr.ind
+      p.fdr.e[ctr,3] = e.curr
+      e.prev = p.fdr.e[(ctr-1),3]
       p.choice = i
+      
 
-      # Debugging print statements after calculations
-      cat("TP:", tp, "FP:", fp, "FDR.ind:", fdr.ind, "E.curr:", e.curr, "\n")
-
-      if (e.curr < 0) { break }
-    }
-
-    if (signif(p.fdr.e[ctr - 1, 3], 3) == signif(p.fdr.e[ctr, 3], 3)) { flag = 0 }
-  }
+      if(e.curr < 0){ break }
+      
+    
+    if(signif(p.fdr.e[ctr-1,3],3) == signif(p.fdr.e[ctr,3],3)){ flag = 0 }
+  }  
   return(p.fdr.e)
 }
 
-p.choice.bin.1 = as.data.frame(bisect(p.bin,fp.bin[,2],p.choice.bin,fdr.choice.bin,FDR.thresh,step,"binomial",b=0,w,p))
-p.choice.betabin.1 = as.data.frame(bisect(p.betabin,fp.betabinomial[,2],p.choice.betabin,fdr.choice.betabin,FDR.thresh,step,"betabinomial",b,w,p))
+p.choice.bin.1 = as.data.frame(bisect(p.bin,p.choice.bin,fdr.choice.bin,FDR.thresh,step,"binomial",b=0,w,p))
+p.choice.betabin.1 = as.data.frame(bisect(p.betabin,p.choice.betabin,fdr.choice.betabin,FDR.thresh,step,"betabinomial",b,w,p))
 
 p.choice.bin.1 = p.choice.bin.1[p.choice.bin.1[,3]>0,]
 p.choice.bin.2 = p.choice.bin.1[nrow(p.choice.bin.1),1]
@@ -193,9 +211,7 @@ FDR.txt = FDR.txt[-nrow(FDR.txt),]
 
 
 ## take in counts.txt and filter by p.betabin and cnv
-#interestingHets.betabinom = data1[data1$p.betabin<=p.choice.betabin,]
 interestingHets.betabinom = data1[(data1$p.betabin<=p.choice.betabin.2) & (data1$cnv>=0.5 & data1$cnv<=1.5),]
-#print (head(interestingHets.betabinom))
 
 ## printing files
 write.table(data1,file=args[3], sep="\t",
