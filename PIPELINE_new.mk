@@ -141,6 +141,11 @@ all: $(FASTQC_out) $(PREFIX)_ref_allele_ratios.raw_counts.pdf $(PREFIX)_ref_alle
 #currently, keeping alleleDB betabinomial scripts with as few modifications as possible
 
 $(PREFIX)_interestingHets.FDR-$(FDR_CUTOFF).betabinom.chrs1-22$(KEEP_CHR).$(Cntthresh_tot)-tot_$(Cntthresh_min)-min_cnt.tsv: $(PREFIX)_filtered_counts.chrs1-22$(KEEP_CHR).$(Cntthresh_tot)-tot_$(Cntthresh_min)-min_cnt.tsv
+	@line_count=$$(wc -l < $<); \
+	if [ "$$line_count" -le 1 ]; then \
+		echo "ERROR: Input file '$<' is empty or contains only a header (only $$line_count line(s)). Aborting."; \
+		exit 1; \
+	fi
 	Rscript $(PL)/alleledb_calcOverdispersion.R \
 		$< \
 		$(PREFIX)_FDR-$(FDR_CUTOFF).betabinomial.chrs1-22$(KEEP_CHR).$(Cntthresh_tot)-tot_$(Cntthresh_min)-min
@@ -155,23 +160,43 @@ $(PREFIX)_interestingHets.FDR-$(FDR_CUTOFF).betabinom.chrs1-22$(KEEP_CHR).$(Cntt
 
 
 $(PREFIX)_interestingHets.FDR-$(FDR_CUTOFF).binom.chrs1-22$(KEEP_CHR).$(Cntthresh_tot)-tot_$(Cntthresh_min)-min_cnt.tsv: $(PREFIX)_filtered_counts.chrs1-22$(KEEP_CHR).$(Cntthresh_tot)-tot_$(Cntthresh_min)-min_cnt.tsv
+	@line_count=$$(wc -l < $<); \
+	if [ "$$line_count" -le 1 ]; then \
+		echo "ERROR: Input file '$<' is empty or contains only a header (only $$line_count line(s)). Aborting."; \
+		exit 1; \
+	fi
 	python $(PL)/FalsePos.py $< $(FDR_SIMS) $(FDR_CUTOFF) > $(PREFIX)_FDR-$(FDR_CUTOFF).binom.chrs1-22$(KEEP_CHR).$(Cntthresh_tot)-tot_$(Cntthresh_min)-min_cnt.txt
 	cat $< | python $(PL)/filter_by_pval.py $(PREFIX)_FDR-$(FDR_CUTOFF).binom.chrs1-22$(KEEP_CHR).$(Cntthresh_tot)-tot_$(Cntthresh_min)-min_cnt.txt > $@
 
 
 # allelic ratio distrs
 $(PREFIX)_ref_allele_ratios.filtered_counts.chrs1-22$(KEEP_CHR).$(Cntthresh_tot)-tot_$(Cntthresh_min)-min.pdf: $(PREFIX)_filtered_counts.chrs1-22$(KEEP_CHR).$(Cntthresh_tot)-tot_$(Cntthresh_min)-min_cnt.tsv
+	@line_count=$$(wc -l < $<); \
+	if [ "$$line_count" -le 1 ]; then \
+		echo "ERROR: Input file '$<' is empty or contains only a header (only $$line_count line(s)). Aborting."; \
+		exit 1; \
+	fi
 	Rscript $(PL)/plot_AllelicRatio_distribution.R $< $(PREFIX) filtered_counts.chrs1-22$(KEEP_CHR).$(Cntthresh_tot)-tot_$(Cntthresh_min)-min
 
 # filter based on total counts and min per allele count
 # and in non-autosomal chr, optionally keeping X;
 $(PREFIX)_filtered_counts.chrs1-22$(KEEP_CHR).$(Cntthresh_tot)-tot_$(Cntthresh_min)-min_cnt.tsv: $(PREFIX)_filtered_counts.tsv
+	@line_count=$$(wc -l < $<); \
+	if [ "$$line_count" -le 1 ]; then \
+		echo "ERROR: Input file '$<' is empty or contains only a header (only $$line_count line(s)). Aborting."; \
+		exit 1; \
+	fi
 	cat $< | \
 	python $(PL)/filter_non-autosomal_chr.py $(KEEP_CHR) | \
 	python $(PL)/filter_by_counts.py $(Cntthresh_tot) $(Cntthresh_min) > $@
 
 # allelic ratio distrs
 $(PREFIX)_ref_allele_ratios.filtered_counts.pdf: $(PREFIX)_filtered_counts.tsv
+	@line_count=$$(wc -l < $<); \
+	if [ "$$line_count" -le 1 ]; then \
+		echo "ERROR: Input file '$<' is empty or contains only a header (only $$line_count line(s)). Aborting."; \
+		exit 1; \
+	fi
 	Rscript $(PL)/plot_AllelicRatio_distribution.R $< $(PREFIX) filtered_counts
 
 # filter out sites in potential cnv regions 
@@ -179,6 +204,11 @@ $(PREFIX)_ref_allele_ratios.filtered_counts.pdf: $(PREFIX)_filtered_counts.tsv
 # filter/adjust sites imbalanced likely due to unaccounted multi-mapping reads 
 # will use 'adjust' only for now
 $(PREFIX)_filtered_counts.tsv: $(PREFIX)_raw_counts.tsv $(PREFIX)_hap1_mmapreads.mpileup $(PREFIX)_hap2_mmapreads.mpileup
+	@line_count=$$(wc -l < $<); \
+	if [ "$$line_count" -le 1 ]; then \
+		echo "ERROR: Input file '$<' is empty or contains only a header (only $$line_count line(s)). Aborting."; \
+		exit 1; \
+	fi
 	cat $< | \
 	python $(PL)/filter_cnv_sites.py $(PREFIX)_discarded_HetSNVs_potential-CNV.log $(PGENOME_DIR)/$(VCF_SAMPLE_ID)_hetSNVs_rd.tab | \
 	python $(PL)/filter_phase_warnings.py $(PREFIX)_discarded_HetSNVs_warn-haplotype.log | \
@@ -190,6 +220,11 @@ $(PREFIX)_filtered_counts.tsv: $(PREFIX)_raw_counts.tsv $(PREFIX)_hap1_mmapreads
 
 # allelic ratio distrs
 $(PREFIX)_ref_allele_ratios.raw_counts.pdf: $(PREFIX)_raw_counts.tsv
+	@line_count=$$(wc -l < $<); \
+	if [ "$$line_count" -le 1 ]; then \
+		echo "ERROR: Input file '$<' is empty or contains only a header (only $$line_count line(s)). Aborting."; \
+		exit 1; \
+	fi
 	Rscript $(PL)/plot_AllelicRatio_distribution.R $< $(PREFIX) raw_counts
 
 # counts

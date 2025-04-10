@@ -177,6 +177,10 @@ $(OUTPUT_DIR)/STAR_idx_diploid_Log.out: $(OUTPUT_DIR)/$(VCF_SAMPLE_ID)_diploid.$
 $(OUTPUT_DIR)/$(VCF_SAMPLE_ID)_hetSNVs_rd.tab: $(OUTPUT_DIR)/$(VCF_SAMPLE_ID)_hetSNVs_ref.bed
 	$(SAMTOOLS) view -H $(FILE_PATH_BAM) | grep -P "@SQ\tSN:" | awk -F"\t" '{print $$1"\t"$$2"\t"$$3}' | \
 	sed 's/@SQ\tSN://' | sed 's/\tLN:/\t/' > $(OUTPUT_DIR)/genome.txt 
+	@if [ ! -s $(OUTPUT_DIR)/genome.txt ]; then \
+	    echo "ERROR: No @SQ tags found in BAM header. Check BAM file: $(FILE_PATH_BAM)"; \
+	    exit 1; \
+	fi
 	awk '{print $$1"\t"($$3-1000)"\t"($$3+1000)"\t"$$4}' $< | grep -v "-" | \
 	python $(PL)/feed_sorted_check_names.py $(OUTPUT_DIR)/genome.txt | \
 	$(BEDTOOLS_intersectBed) intersect -a $(FILE_PATH_BAM) -b stdin \

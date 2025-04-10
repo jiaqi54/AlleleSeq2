@@ -58,6 +58,9 @@ for i in duplicate_posns:
     # thus, the input vcf should not have duplicated snvs
     # todo: add a check when generating ref.bed
 
+# Normalize keys in hetSNV_dict to lowercase
+hetSNV_dict = {k.lower(): v for k, v in hetSNV_dict.items()}
+
 # read the pileups
 pileup_dict = read_pileup.pileup_to_basecnts(sys.argv[6:])
 
@@ -85,7 +88,7 @@ sys.stdout.write('\t'.join([
 with open(sys.argv[2], 'r') as in_ref:
     for line in in_ref:
 
-        k = line.split('\t')[0] + '_' + line.split('\t')[2]
+        k = (line.split('\t')[0] + '_' + line.split('\t')[2]).lower()
 
         # when not lifted neither to hap1 nor hap2
         # or a non A, C, G, T, N nt in vcf
