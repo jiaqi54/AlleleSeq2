@@ -9,7 +9,7 @@ LIFTOVER                      := /vast/palmer/apps/avx2/software/liftOver/2023-0
 BEDTOOLS_intersectBed         := /vast/palmer/apps/avx2/software/BEDTools/2.30.0-GCCcore-10.2.0/bin/bedtools
 SAMTOOLS                      := /vast/palmer/apps/avx2/software/SAMtools/1.16-GCCcore-10.2.0/bin/samtools
 MAX_RAM                       := 45G
-PL                            := /gpfs/gibbs/pi/gerstein/en325/ENTEX2/AlleleSeq2/AlleleSeq2-master2
+PL                            := /vast/palmer/pi/gerstein/jl3786/AlleleSeq2-master2
 
 # matters if used STAR genomeGenerate only
 STAR                          := /vast/palmer/apps/avx2/software/STAR/2.7.7a-GCCcore-10.2.0/bin/STAR

@@ -22,6 +22,7 @@ READS_R2                         :=
 
 PGENOME_DIR                      := NULL
 VCF_SAMPLE_ID                    := NULL
+OUTDIR                           ?= ./output
 
 
 ### params ##
@@ -29,6 +30,7 @@ VCF_SAMPLE_ID                    := NULL
 ALIGNMENT_MODE                           := NULL # can be 'ASE', 'ASB', 'custom', 'ASCA' -- currently, for with known adapters (if present) only
 RM_DUPLICATE_READS                       := on  # with 'on' duplicate reads will be removed using picard
 PERFORM_FASTQC                           := on
+TRIM_READS                               ?= true
 
 # needed for all: ASE, ASB, custom, or ASCA:
 GenomeIdx_STAR_diploid                   := $(PGENOME_DIR)/STAR_idx_diploid
@@ -87,7 +89,7 @@ ifeq ($(READS_R2),$(empty_string))
   tmp1 = $(notdir $(READS_R1))
   tmp2 = $(tmp1:.gz=)
   tmp3 = $(tmp2:.fastq=)
-  PREFIX = $(tmp3:.fq=)
+  PREFIX = $(OUTDIR)/$(tmp3:.fq=)
   FASTQC_out = $(PREFIX)_fastqc.html
 else
   tmp11 = $(notdir $(READS_R1))
@@ -98,8 +100,8 @@ else
   tmp22 = $(tmp21:.gz=)
   tmp23 = $(tmp22:.fastq=)
   tmp24 = $(tmp23:.fq=)
-  PREFIX = $(tmp14)_$(tmp24)
-  FASTQC_out = $(tmp14)_fastqc.html
+  PREFIX = $(OUTDIR)/$(tmp14)_$(tmp24)
+  FASTQC_out = $(OUTDIR)/$(tmp14)_fastqc.html
 endif
 
 ifeq ($(RM_DUPLICATE_READS),on)
@@ -141,11 +143,6 @@ all: $(FASTQC_out) $(PREFIX)_ref_allele_ratios.raw_counts.pdf $(PREFIX)_ref_alle
 #currently, keeping alleleDB betabinomial scripts with as few modifications as possible
 
 $(PREFIX)_interestingHets.FDR-$(FDR_CUTOFF).betabinom.chrs1-22$(KEEP_CHR).$(Cntthresh_tot)-tot_$(Cntthresh_min)-min_cnt.tsv: $(PREFIX)_filtered_counts.chrs1-22$(KEEP_CHR).$(Cntthresh_tot)-tot_$(Cntthresh_min)-min_cnt.tsv
-	@line_count=$$(wc -l < $<); \
-	if [ "$$line_count" -le 1 ]; then \
-		echo "ERROR: Input file '$<' is empty or contains only a header (only $$line_count line(s)). Aborting."; \
-		exit 1; \
-	fi
 	Rscript $(PL)/alleledb_calcOverdispersion.R \
 		$< \
 		$(PREFIX)_FDR-$(FDR_CUTOFF).betabinomial.chrs1-22$(KEEP_CHR).$(Cntthresh_tot)-tot_$(Cntthresh_min)-min
@@ -160,43 +157,23 @@ $(PREFIX)_interestingHets.FDR-$(FDR_CUTOFF).betabinom.chrs1-22$(KEEP_CHR).$(Cntt
 
 
 $(PREFIX)_interestingHets.FDR-$(FDR_CUTOFF).binom.chrs1-22$(KEEP_CHR).$(Cntthresh_tot)-tot_$(Cntthresh_min)-min_cnt.tsv: $(PREFIX)_filtered_counts.chrs1-22$(KEEP_CHR).$(Cntthresh_tot)-tot_$(Cntthresh_min)-min_cnt.tsv
-	@line_count=$$(wc -l < $<); \
-	if [ "$$line_count" -le 1 ]; then \
-		echo "ERROR: Input file '$<' is empty or contains only a header (only $$line_count line(s)). Aborting."; \
-		exit 1; \
-	fi
 	python $(PL)/FalsePos.py $< $(FDR_SIMS) $(FDR_CUTOFF) > $(PREFIX)_FDR-$(FDR_CUTOFF).binom.chrs1-22$(KEEP_CHR).$(Cntthresh_tot)-tot_$(Cntthresh_min)-min_cnt.txt
 	cat $< | python $(PL)/filter_by_pval.py $(PREFIX)_FDR-$(FDR_CUTOFF).binom.chrs1-22$(KEEP_CHR).$(Cntthresh_tot)-tot_$(Cntthresh_min)-min_cnt.txt > $@
 
 
 # allelic ratio distrs
 $(PREFIX)_ref_allele_ratios.filtered_counts.chrs1-22$(KEEP_CHR).$(Cntthresh_tot)-tot_$(Cntthresh_min)-min.pdf: $(PREFIX)_filtered_counts.chrs1-22$(KEEP_CHR).$(Cntthresh_tot)-tot_$(Cntthresh_min)-min_cnt.tsv
-	@line_count=$$(wc -l < $<); \
-	if [ "$$line_count" -le 1 ]; then \
-		echo "ERROR: Input file '$<' is empty or contains only a header (only $$line_count line(s)). Aborting."; \
-		exit 1; \
-	fi
 	Rscript $(PL)/plot_AllelicRatio_distribution.R $< $(PREFIX) filtered_counts.chrs1-22$(KEEP_CHR).$(Cntthresh_tot)-tot_$(Cntthresh_min)-min
 
 # filter based on total counts and min per allele count
 # and in non-autosomal chr, optionally keeping X;
 $(PREFIX)_filtered_counts.chrs1-22$(KEEP_CHR).$(Cntthresh_tot)-tot_$(Cntthresh_min)-min_cnt.tsv: $(PREFIX)_filtered_counts.tsv
-	@line_count=$$(wc -l < $<); \
-	if [ "$$line_count" -le 1 ]; then \
-		echo "ERROR: Input file '$<' is empty or contains only a header (only $$line_count line(s)). Aborting."; \
-		exit 1; \
-	fi
 	cat $< | \
 	python $(PL)/filter_non-autosomal_chr.py $(KEEP_CHR) | \
 	python $(PL)/filter_by_counts.py $(Cntthresh_tot) $(Cntthresh_min) > $@
 
 # allelic ratio distrs
 $(PREFIX)_ref_allele_ratios.filtered_counts.pdf: $(PREFIX)_filtered_counts.tsv
-	@line_count=$$(wc -l < $<); \
-	if [ "$$line_count" -le 1 ]; then \
-		echo "ERROR: Input file '$<' is empty or contains only a header (only $$line_count line(s)). Aborting."; \
-		exit 1; \
-	fi
 	Rscript $(PL)/plot_AllelicRatio_distribution.R $< $(PREFIX) filtered_counts
 
 # filter out sites in potential cnv regions 
@@ -204,11 +181,6 @@ $(PREFIX)_ref_allele_ratios.filtered_counts.pdf: $(PREFIX)_filtered_counts.tsv
 # filter/adjust sites imbalanced likely due to unaccounted multi-mapping reads 
 # will use 'adjust' only for now
 $(PREFIX)_filtered_counts.tsv: $(PREFIX)_raw_counts.tsv $(PREFIX)_hap1_mmapreads.mpileup $(PREFIX)_hap2_mmapreads.mpileup
-	@line_count=$$(wc -l < $<); \
-	if [ "$$line_count" -le 1 ]; then \
-		echo "ERROR: Input file '$<' is empty or contains only a header (only $$line_count line(s)). Aborting."; \
-		exit 1; \
-	fi
 	cat $< | \
 	python $(PL)/filter_cnv_sites.py $(PREFIX)_discarded_HetSNVs_potential-CNV.log $(PGENOME_DIR)/$(VCF_SAMPLE_ID)_hetSNVs_rd.tab | \
 	python $(PL)/filter_phase_warnings.py $(PREFIX)_discarded_HetSNVs_warn-haplotype.log | \
@@ -220,11 +192,6 @@ $(PREFIX)_filtered_counts.tsv: $(PREFIX)_raw_counts.tsv $(PREFIX)_hap1_mmapreads
 
 # allelic ratio distrs
 $(PREFIX)_ref_allele_ratios.raw_counts.pdf: $(PREFIX)_raw_counts.tsv
-	@line_count=$$(wc -l < $<); \
-	if [ "$$line_count" -le 1 ]; then \
-		echo "ERROR: Input file '$<' is empty or contains only a header (only $$line_count line(s)). Aborting."; \
-		exit 1; \
-	fi
 	Rscript $(PL)/plot_AllelicRatio_distribution.R $< $(PREFIX) raw_counts
 
 # counts
@@ -346,11 +313,22 @@ $(PREFIX)_ASB-params.Aligned.sortedByCoord.out.bam: $(READS_R1)
 
 
 ## opts for ASCA, atac-seq, similar to ASB, but will require adapter-trimmed reads
-$(PREFIX)_ASCA-params.Aligned.sortedByCoord.out.bam: $(READS_R1).trimmed.fastq.gz
+
+ifeq ($(TRIM_READS),true)
+  READS1 := $(READS_R1).trimmed.fastq.gz
+  READS2 := $(READS_R2).trimmed.fastq.gz
+  DEPENDENCIES := $(READS1) $(READS2)
+else
+  READS1 := $(READS_R1)
+  READS2 := $(READS_R2)
+  DEPENDENCIES := $(READS1) $(READS2)
+endif
+
+$(PREFIX)_ASCA-params.Aligned.sortedByCoord.out.bam: $(DEPENDENCIES)
 	$(STAR) \
 	--runThreadN $(NTHR) \
 	--genomeDir $(GenomeIdx_STAR_diploid) \
-	--readFilesIn $< $(READS_R2).trimmed.fastq.gz \
+	--readFilesIn $(READS1) $(READS2) \
 	--readFilesCommand $(STAR_readFilesCommand) \
 	--outFileNamePrefix $(@:Aligned.sortedByCoord.out.bam=) \
 	--outSAMattributes All \
@@ -363,8 +341,10 @@ $(PREFIX)_ASCA-params.Aligned.sortedByCoord.out.bam: $(READS_R1).trimmed.fastq.g
 	--limitSjdbInsertNsj $(STAR_limitSjdbInsertNsj) \
 	--outSAMtype BAM SortedByCoordinate
 	$(SAMTOOLS) flagstat $@ > $@.stat
-	$(SAMTOOLS) index $@	
+	$(SAMTOOLS) index $@
 
+
+# Trimming rule
 $(READS_R1).trimmed.fastq.gz $(READS_R2).trimmed.fastq.gz: $(READS_R1) $(READS_R2)
 	$(CUTADAPT) -m 5 \
 	-a $(R1_ADAPTER_SEQ) \

@@ -185,7 +185,7 @@ bisect <- function(p,p.choice,fdr,fdr.threshold,by,distrib="binomial",b=0,w,p.th
       
 
       if(e.curr < 0){ break }
-      
+    }
     
     if(signif(p.fdr.e[ctr-1,3],3) == signif(p.fdr.e[ctr,3],3)){ flag = 0 }
   }  
