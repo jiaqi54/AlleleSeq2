@@ -115,6 +115,7 @@ $(OUTPUT_DIR)/maternal.chain $(OUTPUT_DIR)/paternal.chain: $(FILE_PATH_VCF)
 	@echo -e "$(USAGE)"
 	mkdir -p $(OUTPUT_DIR)
 	$(JAVA) -Xmx$(MAX_RAM) -jar $(VCF2DIPLOID_DIR)/vcf2diploid.jar \
+	-pass \
 	-id $(VCF_SAMPLE_ID) \
 	-chr $(REFGENOME) \
 	-vcf $(FILE_PATH_VCF_SVS) $(FILE_PATH_VCF_INDELS) $(FILE_PATH_VCF) \
