@@ -30,14 +30,14 @@ ifeq ($(REFGENOME_VERSION), GRCh38)
 ## Primary assembly
 
   ### Assebmled chromosomes (only 1-22, X, Y, M will be used by vcf2diploid if the reference has other contigs) with PAR and repeat array regions hard masked:
-  REFGENOME        := ~/refs_annotations/UCSC_Analysis_Set_GRCh38/hg38.analysisSet.fasta
+  REFGENOME        := /vast/palmer/pi/gerstein/jl3786/Genomes/hg38/UCSC_Analysis_Set_GRCh38/hg38.analysisSet.fasta
   ### Unlocalized sequences (_random) and unplaced sequences (chrU_) of the primary assebmly (in addition to assembled chromosomes)
   ### + EBV&decoy contigs (without alternate contigs, alternate scaffolds or alternate loci (_alt)).
   ### These will be added to the diploid personal genome to siphon off reads corresponding to those during mapping
   ### will not be used for readcounting, AS calling, etc
-  ADDNL_SEQNS      := ~/refs_annotations/UCSC_Analysis_Set_GRCh38/hg38.analysisSet_unplaced_unlocalized_EBV_contigs_only.fasta
+  ADDNL_SEQNS      := /gpfs/gibbs/pi/gerstein/from_slayman/tg397/ENTEx_Allele_share/JQL/hg38.analysisSet_unplaced_unlocalized_EBV_contigs_only.fasta
 
-  ANNOTATION       := ~/refs_annotations/gencode.v24.annotation.gtf
+  ANNOTATION       := /vast/palmer/pi/gerstein/jl3786/Genomes/hg38/annotation/gencode.v47.annotation.gtf
 
 else ifeq ($(REFGENOME_VERSION), chm13)
 
