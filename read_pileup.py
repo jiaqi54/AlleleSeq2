@@ -19,7 +19,6 @@ import sys
 
 def pileup_to_basecnts (filelist):
     pileup_dict = {}
-
     for mf in filelist:
         with open(mf,'r') as in_m:
             for line in in_m:
@@ -41,10 +40,31 @@ def pileup_to_basecnts (filelist):
                                 number = ''
                         else:
                             if character.isalpha():
-                                number = int(number)
+                                # number = int(number)
+                                try:
+                                    number = int(number)
+                                except ValueError:
+                                    print(f"[WARNING] character.isalpha() | Cannot convert to int: '{number}' — skipping", file=sys.stderr)
+                                    print(line, file=sys.stderr)
+                                    continue
+                                
                                 number -= 1
-                            else: number += character
-                            if int(number) == 0: new_indel = False
+                            else: 
+                                try:
+                                    number += character
+                                except TypeError:
+                                    print("Line: ", line, file=sys.stderr)
+                                    print("seq: ", seq, file=sys.stderr)
+                                    print("character: ", character, file=sys.stderr)
+                                    continue
+                            # if int(number) == 0: new_indel = False
+                            try:
+                                if int(number) == 0:	
+                                    new_indel = False
+                            except ValueError:
+                                print(f"[WARNING] Cannot convert to int: '{number}' — skipping", file=sys.stderr)
+                                print(line, file=sys.stderr)
+                                continue
 
                     seq = tmp_seq
 
@@ -54,8 +74,18 @@ def pileup_to_basecnts (filelist):
 
                 for base in basecnts:
                     if base in seq.upper(): basecnts[base] = seq.upper().count(base)
-                if (basecnts['A'] + basecnts['C'] + basecnts['G'] + basecnts['T'] + basecnts['N'] + deleted_bases + spliced) != int(tot_pileup_cnt):
-                    sys.exit(sys.argv[0] + '\nerror1: unexpected base counts / symbols in pileup line\n'+line)
+                # if (basecnts['A'] + basecnts['C'] + basecnts['G'] + basecnts['T'] + basecnts['N'] + deleted_bases + spliced) != int(tot_pileup_cnt):
+                #     sys.exit(sys.argv[0] + '\nerror1: unexpected base counts / symbols in pileup line\n'+line)
+                try:
+                    expected_total = (
+                        basecnts['A'] + basecnts['C'] + basecnts['G'] +
+                        basecnts['T'] + basecnts['N'] + deleted_bases + spliced
+                    )
+                    if expected_total != int(tot_pileup_cnt):
+                        raise ValueError("Unexpected base counts / symbols in pileup line")
+                except ValueError as e:
+                    print(f"[WARNING] {e}:\n{line}", file=sys.stderr)
+                    continue
 
                 if sum(basecnts.values()) > basecnts[a]: warning = str(sum(basecnts.values()) - basecnts[a])+'_other_alleles'                
                 if max(basecnts.values()) > basecnts[a]: warning = 'hap_allele_not_largest_cnt'

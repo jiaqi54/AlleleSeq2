@@ -13,13 +13,13 @@ PL                            := /vast/palmer/pi/gerstein/jl3786/AlleleSeq2-mast
 
 # matters if used STAR genomeGenerate only
 STAR                          := /vast/palmer/apps/avx2/software/STAR/2.7.7a-GCCcore-10.2.0/bin/STAR
-N_THREADS                     := 12        
-STAR_limitGenomeGenerateRAM   := 25000000000 # (bytes, default in STAR)
+N_THREADS                     := 12 # 32 12        
+STAR_limitGenomeGenerateRAM   := 25000000000 # 80000000000 #  # (bytes, default in STAR)
 
 # aligner:
 #  'bowtie1' or 'STAR'; Only using STAR now 
 
-ALIGNER                       := STAR
+ALIGNER                       := STAR #12
 
 #### paths
 
@@ -30,7 +30,7 @@ ifeq ($(REFGENOME_VERSION), GRCh38)
 ## Primary assembly
 
   ### Assebmled chromosomes (only 1-22, X, Y, M will be used by vcf2diploid if the reference has other contigs) with PAR and repeat array regions hard masked:
-  REFGENOME        := /vast/palmer/pi/gerstein/jl3786/Genomes/hg38/UCSC_Analysis_Set_GRCh38/hg38.analysisSet.fasta
+  REFGENOME        := /vast/palmer/pi/gerstein/jl3786/Genomes/hg38/UCSC_Analysis_Set_GRCh38/hg38.analysisSet.fa
   ### Unlocalized sequences (_random) and unplaced sequences (chrU_) of the primary assebmly (in addition to assembled chromosomes)
   ### + EBV&decoy contigs (without alternate contigs, alternate scaffolds or alternate loci (_alt)).
   ### These will be added to the diploid personal genome to siphon off reads corresponding to those during mapping
