@@ -22,6 +22,14 @@ def pileup_to_basecnts (filelist):
     for mf in filelist:
         with open(mf,'r') as in_m:
             for line in in_m:
+                fields = line.strip().split()
+                
+                if len(fields) != 6:
+                    sys.stderr.write(
+                        f"[WARNING] Skipping malformed mpileup line (fields={len(fields)}): {line}"
+                    )
+                    continue
+
                 warning = '.'
                 chrm, crd, a, tot_pileup_cnt, seq, _ = line.split()
                 a = a.upper()
@@ -108,4 +116,3 @@ def pileup_to_basecnts (filelist):
                     pileup_dict[chrm+'_'+crd][chrm.split('_')[1] + '_a'] = a
 
     return pileup_dict
-

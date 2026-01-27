@@ -64,8 +64,8 @@ if __name__=='__main__':
     random.seed(0)
     target=float(sys.argv[3]) # target is the FDR we are looking for, we want to find the corresponding pval
 
-    print "#"," ".join(sys.argv)
-    print "pval\tP\tFP\tFDR"
+    print("#", " ".join(sys.argv))
+    print("pval\tP\tFP\tFDR")
     bm=binomMemo(60)
 
 ## let's try to make it simpler, without the additional module
@@ -88,63 +88,74 @@ if __name__=='__main__':
     cnt_sums_list  = []
     act_pvals_list = []
     with open(ifile, 'r') as inf:
-	inf.readline()
-	for line in inf:
-            region,hap1_count,hap2_count,hap1_allele_ratio,p_binom,snv_count,snv_coords,mmap_log = line.split('\t')
-            act_pvals_list.append(float(p_binom))
-            #counts = [int(e) for e in [cA, cC, cG, cT]]
-            #counts = sorted(counts, reverse=True)[:2]
-            counts = [int(hap1_count), int(hap2_count)]
-            cnt_sums_list.append(sum(counts))
-    act_pvals = numpy.array(act_pvals_list)
-    cnt_sums  = numpy.array(cnt_sums_list)
-    n = len(cnt_sums)
-
-##
-      
-	
-            	
+        inf.readline()
+        for line in inf:
+                region,hap1_count,hap2_count,hap1_allele_ratio,p_binom,snv_count,snv_coords,mmap_log = line.split('\t')
+                act_pvals_list.append(float(p_binom))
+                #counts = [int(e) for e in [cA, cC, cG, cT]]
+                #counts = sorted(counts, reverse=True)[:2]
+                counts = [int(hap1_count), int(hap2_count)]
+                cnt_sums_list.append(sum(counts))
+        act_pvals = numpy.array(act_pvals_list)
+        cnt_sums  = numpy.array(cnt_sums_list)
+        n = len(cnt_sums)
     
-    act_pvals.sort()
+    ##
+          
+        
+                    
+        
+        act_pvals.sort()
+        
     
-
-    sim_pvals=numpy.array([ sorted([simpval(cnt_sums[j],bm) for j in xrange(n)]) for i in xrange(sims)])
-   
-    #sim_pvals_means=numpy.mean(sim_pvals, 0)
-
-    pvs=[e*0.001 for e in range(10)]+[e*0.01 for e in range(1,10)]+[e*0.1 for e in range(1,10)]
-    # for a given test pv, find the number of actual pvals that are smaller, and the number of sim pvals that are smaller.
-    # FDR is the ratio
-    for pv in pvs:
-        Nact=bisect.bisect(act_pvals, pv)
-        mean_Nsims=numpy.mean([bisect.bisect(sim_pvals[i], pv) for i in xrange(sims)])
-        FDR=mean_Nsims/(Nact+1)
-        print "%f\t%s\t%f\t%f" % (pv, Nact, mean_Nsims, FDR)
-
-    # This is my attempt to find the act_pval that corresponds best to the desired target FDR.  
-    # This version walks from largest observed pvalue to the smallest.
-    if target:
-        last_FDR=last_pv=0.0
-        for Nact, pv in sorted(enumerate(act_pvals), reverse=True):
-            mean_Nsims=numpy.mean([bisect.bisect(sim_pvals[i], pv) for i in xrange(sims)])
+        sim_pvals=numpy.array([ sorted([simpval(cnt_sums[j],bm) for j in range(n)]) for i in range(sims)])
+       
+        #sim_pvals_means=numpy.mean(sim_pvals, 0)
+    
+        pvs=[e*0.001 for e in range(10)]+[e*0.01 for e in range(1,10)]+[e*0.1 for e in range(1,10)]
+        # for a given test pv, find the number of actual pvals that are smaller, and the number of sim pvals that are smaller.
+        # FDR is the ratio
+        for pv in pvs:
+            Nact=bisect.bisect(act_pvals, pv)
+            mean_Nsims=numpy.mean([bisect.bisect(sim_pvals[i], pv) for i in range(sims)])
             FDR=mean_Nsims/(Nact+1)
-            if verbose: print "test %d %f %f %f" % (Nact,mean_Nsims,FDR, pv)
-#tg20161115: this seems to fail (in extreme cases) if the first bestFDR < target is 0
-#            if not bestFDR and FDR < target:
-            if bestFDR==None and FDR < target:
-                print "target %f" % target
-                print "before %f %f" % (last_FDR, last_pv)
-                print "after  %f %f" % (FDR, pv)
-                bestFDR = FDR; bestPV = pv
-#tg20161115: stop tests if bestFDR found, bestFDR and bestPV don't change anyway:
-		if not verbose: break
-
-            last_FDR=FDR; last_pv=pv
-
-#tg20161115: to avoid crashing when bestFDR and bestPV are None. 
-	#print "Target %f FDR %f pv %f" % (target,bestFDR, bestPV)
-	if bestFDR!=None and bestPV!=None: print "Target %f FDR %f pv %f" % (target,bestFDR, bestPV)
-	else: 
-		print "# couldn't calculate pvalue threshold: no snvs in input or none with small enough p-value (?)\n# will set p value threshold to 0: \nTarget "+str(target)+" FDR NA pv 0" 
-		print >> sys.stderr, "WARNING "+sys.argv[0]+": couldn't calculate pvalue threshold: no snvs in input or none with small enough p-value (?). will set p value threshold to 0 - no snvs will be reported after filtering" 
-
+            print("%f\t%s\t%f\t%f" % (pv, Nact, mean_Nsims, FDR))
+    
+        # This is my attempt to find the act_pval that corresponds best to the desired target FDR.  
+        # This version walks from largest observed pvalue to the smallest.
+        if target:
+            last_FDR=last_pv=0.0
+            for Nact, pv in sorted(enumerate(act_pvals), reverse=True):
+                mean_Nsims=numpy.mean([bisect.bisect(sim_pvals[i], pv) for i in range(sims)])
+                FDR=mean_Nsims/(Nact+1)
+                if verbose: print("test %d %f %f %f" % (Nact,mean_Nsims,FDR, pv))
+    #tg20161115: this seems to fail (in extreme cases) if the first bestFDR < target is 0
+    #            if not bestFDR and FDR < target:
+                if bestFDR==None and FDR < target:
+                    print("target %f" % target)
+                    print("before %f %f" % (last_FDR, last_pv))
+                    print("after  %f %f" % (FDR, pv))
+                    bestFDR = FDR; bestPV = pv
+    #tg20161115: stop tests if bestFDR found, bestFDR and bestPV don't change anyway:
+                    if not verbose: 
+                        break
+    
+                last_FDR=FDR; last_pv=pv
+    
+    #tg20161115: to avoid crashing when bestFDR and bestPV are None. 
+        #print "Target %f FDR %f pv %f" % (target,bestFDR, bestPV)
+        if bestFDR is not None and bestPV is not None:
+            print("Target %f FDR %f pv %f" % (target, bestFDR, bestPV))
+        else:
+            print(
+                "# couldn't calculate pvalue threshold: no snvs in input or none with small enough p-value (?)\n"
+                "# will set p value threshold to 0:\n"
+                "Target " + str(target) + " FDR NA pv 0"
+            )
+            print(
+                "WARNING " + sys.argv[0] +
+                ": couldn't calculate pvalue threshold: no snvs in input or none with small enough p-value (?). "
+                "will set p value threshold to 0 - no snvs will be reported after filtering",
+                file=sys.stderr
+            )
+    

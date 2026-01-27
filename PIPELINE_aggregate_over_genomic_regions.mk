@@ -5,9 +5,9 @@
 
 ### system / executables ##
 
-PL                               := ~/bin/AlleleSeq2
-SAMTOOLS                         := ~/bin/samtools-1.3.1/samtools
-BEDTOOLS_intersectBed            := ~/bin/bedtools2/bin/intersectBed
+PL                               := /vast/palmer/pi/gerstein/jl3786/AlleleSeq2-master2-temp
+SAMTOOLS                         := /vast/palmer/apps/avx2/software/SAMtools/1.16-GCCcore-10.2.0/bin/samtools
+BEDTOOLS_intersectBed            := /vast/palmer/apps/avx2/software/BEDTools/2.30.0-GCCcore-10.2.0/bin/intersectBed
 
 ### input files / paths ##
 
