@@ -53,7 +53,16 @@ data1$p.betabin = p.betabin
 
 ## simulations
 step = 0.0001
-p.thresh = data.frame( c(seq(0,0.001,by=0.0001), seq(0,0.01,by=0.001), seq(0.01,0.1,by=0.01)[-1], seq(0.1,1,by=0.1)[-1]) )
+# p.thresh = data.frame( c(seq(0,0.001,by=0.0001), seq(0,0.01,by=0.001), seq(0.01,0.1,by=0.01)[-1], seq(0.1,1,by=0.1)[-1]) )
+p_grid <- c(
+  10^seq(-20, -4, length.out = 10),
+  seq(0, 0.001, by = 0.0001),
+  seq(0.001, 0.01, by = 0.001)[-1],
+  seq(0.01, 0.1, by = 0.01)[-1],
+  seq(0.1, 1, by = 0.1)[-1]
+)
+
+p.thresh <- data.frame(p = sort(unique(p_grid)))
 cutoff <- function(x,y) sum(y<=x)
 
 ## calc fp from null and empirical counts
